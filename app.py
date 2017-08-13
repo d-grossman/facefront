@@ -2,6 +2,8 @@ import hashlib
 import pickle
 import sys
 import os
+from PIL import Image
+import numpy as np
 
 import cv2
 from flask import Flask, request
@@ -28,6 +30,11 @@ def vec2str(v):
     return ret_val
 
 
+def vec2hash(v):
+    v = vec2str(v)
+    return hashlib.md5(v.encode("utf")).hexdigest()
+
+
 class working(Resource):
 
     def get(self):
@@ -45,41 +52,41 @@ class make_search_vector(Resource):
         print('request:', request)
         sys.stdout.flush()
 
-        #get the image if it exists
+        # get the image if it exists
         if 'data' in request.files:
             #print('file found')
             #print('found,', request.files)
-            #sys.stdout.flush()
+            # sys.stdout.flush()
 
-            #get the filename
+            # get the filename
             file = request.files['data']
             #print('filename:', file.filename)
-            #sys.stdout.flush()
+            # sys.stdout.flush()
 
-            #keep the same extension on the file
+            # keep the same extension on the file
             extension = file.filename.split('.')[-1]
 
             #@TODO add the time of the reference to keep things seperated
-            filename_h= hashlib.md5(file.filename.encode("utf")).hexdigest()
+            filename_h = hashlib.md5(file.filename.encode("utf")).hexdigest()
 
-            file.filename = '{0}.{1}'.format(filename_h,extension)
+            file.filename = '{0}.{1}'.format(filename_h, extension)
             print('filename:', file.filename)
 
-            #save the file into the hash of the filename
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'],file.filename))
+            # save the file into the hash of the filename
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
 
-            #read the file, find the face make the vector
-            face_image = cv2.imread(os.path.join(app.config['UPLOAD_FOLDER'],file.filename))
+            # read the file, find the face make the vector
+            face_image = cv2.imread(os.path.join(
+                app.config['UPLOAD_FOLDER'], file.filename))
             enc = face.face_encodings(face_image, None)[0]
             print('enc:', enc)
             sys.stdout.flush()
-            vec_str = vec2str(enc)
 
-            #make a reference to the vector as a loose hash to the file
-            h = hashlib.md5(vec_str.encode("utf")).hexdigest()
+            # make a reference to the vector as a loose hash to the file
+            h = vec2hash(enc)
 
             if len(enc) == 128:
-                #valid data update the return
+                # valid data update the return
                 ret_val['Found'] = 'True'
                 ret_val['Name'] = h
                 ret_val['Vec'] = list(enc)
@@ -90,6 +97,15 @@ class make_search_vector(Resource):
 
 class find_vectors(Resource):
 
+    def write_file(self, entity, prefix='static/'):
+        img = Image.fromarray(np.roll(entity['pic'], 1, axis=-1))
+        base_name = vec2hash(entity['face_vec'])
+        filename = '{0}.{1}'.format(base_name, 'bmp')
+        uri = os.path.join(prefix, filename)
+        if not os.path.isfile(uri):
+            img.save(uri)
+        return uri
+
     def get(self, search_vector_name, distance):
 
         ret_val = list()
@@ -97,8 +113,8 @@ class find_vectors(Resource):
         try:
             vector = face_search_vectors[search_vector_name]
         except Exception as e:
-            abort(404, message='work {0} does not exist'.format(
-                search_vector_name))
+            abort(404, message='{0} work {1} does not exist'.format(e,
+                                                                    search_vector_name))
 
         if distance > 1.0 or distance < 0:
             abort(404, message='distance {0} must be between [0,1]'.format(
@@ -111,14 +127,20 @@ class find_vectors(Resource):
             entity_times = entity['times']
             left = face_search_vectors[search_vector_name]
             right = entity_vec
-            if (face.face_distance([left],right)) < distance:
-                print('found:',key)
+
+            vector_distance = face.face_distance([left], right)[0]
+            if vector_distance < distance:
+                print('found:', key)
                 sys.stdout.flush()
-                ret_val.append(key)
+                d = dict()
+                d['Name'] = key
+                d['Uri'] = self.write_file(entity)
+                d['Distance'] = vector_distance
+                ret_val.append(d)
 
         return ret_val
 
-        #return {'vector': search_vector_name, 'distance': distance}
+        # return {'vector': search_vector_name, 'distance': distance}
 
 api.add_resource(working, app.config['V1.0'] + '/working')
 api.add_resource(find_vectors, app.config[
@@ -130,4 +152,3 @@ if __name__ == '__main__':
     face_search_vectors = dict()
     face_pickle = pickle.load(open('./data/faces.pickle', 'rb'))
     app.run(debug=True, host='0.0.0.0')
-
