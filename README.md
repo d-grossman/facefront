@@ -14,7 +14,7 @@
   ```http://yourserver:5000/api/1.0/working```  
   GET  
   will probbaly converted to a health heartbeat when scheduling via marathon  
-  
+
 #### make_search_vector
   ```http://yourserver:5000/api/1.0/makevector```  
   POST  
