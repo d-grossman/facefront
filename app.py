@@ -82,7 +82,7 @@ class make_search_vector(Resource):
                 #valid data update the return
                 ret_val['Found'] = 'True'
                 ret_val['Name'] = h
-                ret_val['vec'] = list(enc)
+                ret_val['Vec'] = list(enc)
                 face_search_vectors[h] = list(enc)
         # return back name of search vector
         return ret_val
