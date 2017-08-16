@@ -61,5 +61,6 @@ COPY . /app
 WORKDIR /app
 RUN conda config --add channels conda-forge 
 RUN conda install --yes --file requirements.txt
+RUN mkdir static
 ENTRYPOINT ["python3"]
 CMD ["app.py"]
