@@ -7,7 +7,7 @@ import numpy as np
 
 import cv2
 from flask import Flask, request
-from flask-restful import Api, Resource, abort, reqparse
+from flask_restful import Api, Resource, abort, reqparse
 from werkzeug.utils import secure_filename
 
 from face import face
