@@ -9,6 +9,7 @@ import cv2
 from flask import Flask, request
 from flask_restful import Api, Resource, abort, reqparse
 from werkzeug.utils import secure_filename
+from collections import defaultdict
 
 from face import face
 
@@ -208,7 +209,7 @@ class find_vectors(Resource):
                 d['Uri'] = self.write_file(entity)
                 d['Distance'] = vector_distance
                 ret_val.append(d)
-
+        #@TODO sort the vectors
         return ret_val
 
         # return {'vector': search_vector_name, 'distance': distance}
