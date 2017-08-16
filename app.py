@@ -62,7 +62,7 @@ class compare_2_uploads(Resource):
         d['distance_euclidean'] = '{0}'.format(distance)
         return d
 
-class make_group(Resources):
+class make_group(Resource):
 
    def post(self,group_name):
         ret_val = dict()
