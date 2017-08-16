@@ -4,7 +4,7 @@
 ```docker build -f Dockerfile.flask -t facefirst.flask .```
 
 ## run the container
-```docker run -it -p 5000:5000 facefirst.flask /bin/bash```
+```docker run -p 5000:5000 facefirst.flask```
 
 ## Interacting with the container
 
