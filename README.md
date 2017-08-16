@@ -29,7 +29,7 @@
 ### manual 
 
 #### upload a picture with 1 face, get a hash 
-```curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@static/face.jpg"  http://yourserver:5000/api/1.0/makevector``` 
+```curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@static/face.jpg" http://yourserver:5000/api/1.0/makevector```  
 
 #### use the hash to search for others from an image
 ```curl http://yourserver:5000/api/1.0/find/94667607017ff1f597afa7da7be8592b/0.5```
