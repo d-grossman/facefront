@@ -197,7 +197,7 @@ class find_group(Resource):
                     d['Uri'] = write_file(entity)
                     d['Distance'] = vector_distance
                     ret_val.append(d)
-
+        ret_val.sort(key=lambda temp_d: temp_d['Distance'])
         return ret_val
 
 
@@ -234,7 +234,8 @@ class find_vectors(Resource):
                 d['Uri'] = write_file(entity)
                 d['Distance'] = vector_distance
                 ret_val.append(d)
-        #@TODO sort the vectors
+
+        ret_val.sort(key=lambda temp_d: temp_d['Distance'])
         return ret_val
 
         # return {'vector': search_vector_name, 'distance': distance}
