@@ -172,8 +172,8 @@ class find_group(Resource):
             abort(
                 404, message='distance {0} must be between [0,1]'.format(distance))
 
-        print('group_name',group_name)
-        print('distance',distance)
+        print('group_name', group_name)
+        print('distance', distance)
         sys.stdout.flush()
 
         for key in face_pickle:
