@@ -8,6 +8,7 @@ import numpy as np
 from flask import Flask, request
 from PIL import Image
 from werkzeug.utils import secure_filename
+from helpers import vec2str, vec2hash, write_file
 
 import cv2
 from face import face
@@ -25,42 +26,11 @@ face_group_search = None
 parser = reqparse.RequestParser()
 
 
-def vec2str(v):
-    ret_val = ''
-    for x in v:
-        ret_val += '{0}'.format(x)
-    return ret_val
-
-
-def vec2hash(v):
-    v = vec2str(v)
-    return hashlib.md5(v.encode("utf")).hexdigest()
-
-
-class working(Resource):
-
-    def get(self):
-        return{'working': 'yes'}
-
-
-def write_file(entity, prefix='static/'):
-    img = Image.fromarray(np.roll(entity['pic'], 1, axis=-1))
-    base_name = vec2hash(entity['face_vec'])
-    filename = '{0}.{1}'.format(base_name, 'jpg')
-    uri = os.path.join(prefix, filename)
-    if not os.path.isfile(uri):
-        img.save(uri)
-    return uri
-
-
 def handle_post_file():
     # get the image if it exists
     enc = None
     h = None
     if 'data' in request.files:
-        # print('file found')
-        # print('found,', request.files)
-        # sys.stdout.flush()
 
         # get the filename
         file = request.files['data']
@@ -89,6 +59,12 @@ def handle_post_file():
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
     return enc, h
+
+
+class working(Resource):
+
+    def get(self):
+        return{'working': 'yes'}
 
 
 class compare_2_uploads(Resource):
@@ -137,7 +113,7 @@ class make_group(Resource):
         return ret_val
 
 
-class make_search_vector(Resource):
+class make_vector(Resource):
 
     def post(self):
         ret_val = dict()
@@ -160,7 +136,7 @@ class make_search_vector(Resource):
         return ret_val
 
 
-class find_group(Resource):
+class find_by_group(Resource):
 
     def get(self, group_name, distance):
         ret_val = list()
@@ -185,8 +161,8 @@ class find_group(Resource):
                 entity_pic = entity['pic']
                 entity_times = entity['times']
 
-                left = group_data[group_key]
-                right = entity_vec
+                left = np.array(group_data[group_key])
+                right = np.array(entity_vec)
 
                 vector_distance = face.face_distance([left], right)[0]
                 if vector_distance < distance:
@@ -195,13 +171,14 @@ class find_group(Resource):
                     d = dict()
                     d['Name'] = key
                     d['Uri'] = write_file(entity)
+                    d['Times'] = entity_times
                     d['Distance'] = vector_distance
                     ret_val.append(d)
         ret_val.sort(key=lambda temp_d: temp_d['Distance'])
         return ret_val
 
 
-class find_vectors(Resource):
+class find_by_vector(Resource):
 
     def get(self, search_vector_name, distance):
 
@@ -210,20 +187,20 @@ class find_vectors(Resource):
         try:
             vector = face_search_vectors[search_vector_name]
         except Exception as e:
-            abort(404, message='{0} work {1} does not exist'.format(e,
-                                                                    search_vector_name))
+            abort(404, message='searchvector {1} does not exist'.format(
+                search_vector_name))
 
         if distance > 1.0 or distance < 0:
-            abort(404, message='distance {0} must be between [0,1]'.format(
-                distance))
+            abort(
+                404, message='distance {0} must be between [0,1]'.format(distance))
 
         for key in face_pickle:
             entity = face_pickle[key]
             entity_vec = entity['face_vec']
             entity_pic = entity['pic']
             entity_times = entity['times']
-            left = face_search_vectors[search_vector_name]
-            right = entity_vec
+            left = np.array(face_search_vectors[search_vector_name])
+            right = np.array(entity_vec)
 
             vector_distance = face.face_distance([left], right)[0]
             if vector_distance < distance:
@@ -232,24 +209,30 @@ class find_vectors(Resource):
                 d = dict()
                 d['Name'] = key
                 d['Uri'] = write_file(entity)
+                d['Times'] = entity_times
                 d['Distance'] = vector_distance
                 ret_val.append(d)
 
         ret_val.sort(key=lambda temp_d: temp_d['Distance'])
         return ret_val
 
-        # return {'vector': search_vector_name, 'distance': distance}
 
+# TODO get rid of this one.
+api.add_resource(find_by_vector, app.config[
+                 'V1.0'] + '/find/<string:search_vector_name>/<float:distance>')
 
 api.add_resource(working, app.config['V1.0'] + '/working')
-api.add_resource(find_vectors, app.config[
-                 'V1.0'] + '/find/<string:search_vector_name>/<float:distance>')
+
+#TODO use thisone soon
+#api.add_resource(find_by_vector, app.config[
+#                 'V1.0'] + '/findvector/<string:search_vector_name>/<float:distance>')
+
 api.add_resource(compare_2_uploads, app.config[
                  'V1.0'] + '/compare2uploads/<string:search_vector_name1>/<string:search_vector_name2>')
-api.add_resource(make_search_vector, app.config['V1.0'] + '/makevector')
+api.add_resource(make_vector, app.config['V1.0'] + '/makevector')
 api.add_resource(make_group, app.config[
                  'V1.0'] + '/makegroup/<string:group_name>')
-api.add_resource(find_group, app.config[
+api.add_resource(find_by_group, app.config[
                  'V1.0'] + '/findgroup/<string:group_name>/<float:distance>')
 
 if __name__ == '__main__':
