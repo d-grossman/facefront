@@ -55,6 +55,8 @@ def write_file(entity, prefix='static/'):
 
 def handle_post_file():
     # get the image if it exists
+    enc = None
+    h = None
     if 'data' in request.files:
         # print('file found')
         # print('found,', request.files)
