@@ -4,14 +4,14 @@ import pickle
 import sys
 from collections import defaultdict
 
-import cv2
 import numpy as np
 from flask import Flask, request
-from flask_restful import Api, Resource, abort, reqparse
 from PIL import Image
 from werkzeug.utils import secure_filename
 
+import cv2
 from face import face
+from flask_restful import Api, Resource, abort, reqparse
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/tmp/'
@@ -239,6 +239,7 @@ class find_vectors(Resource):
         return ret_val
 
         # return {'vector': search_vector_name, 'distance': distance}
+
 
 api.add_resource(working, app.config['V1.0'] + '/working')
 api.add_resource(find_vectors, app.config[

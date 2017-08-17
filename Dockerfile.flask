@@ -57,10 +57,13 @@ RUN pip install scikit-image jupyter notebook tqdm
 
 ENV PYTHONPATH=/app:$PYTHONPATH
 
-COPY . /app
+RUN mkdir /app
 WORKDIR /app
+COPY requirements.txt /app/
+RUN mkdir static
 RUN conda config --add channels conda-forge 
 RUN conda install --yes --file requirements.txt
-RUN mkdir static
+
+COPY . /app
 ENTRYPOINT ["python3"]
 CMD ["app.py"]
