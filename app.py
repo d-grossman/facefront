@@ -95,6 +95,7 @@ class make_group(Resource):
         ret_val = dict()
         ret_val['Found'] = 'False'
         ret_val['Name'] = 'None'
+        ret_val['Group'] = 'False'
         args = parser.parse_args()
         print('args:', args)
         print('request:', request)
@@ -102,7 +103,7 @@ class make_group(Resource):
 
         enc, h = handle_post_file()
 
-        if len(enc) == 128:
+        if len is not None and len(enc) == 128:
             # valid data update the return
             ret_val['Found'] = 'True'
             ret_val['Group'] = 'True'
@@ -126,7 +127,7 @@ class make_vector(Resource):
 
         enc, h = handle_post_file()
 
-        if len(enc) == 128:
+        if len is not None and len(enc) == 128:
             # valid data update the return
             ret_val['Found'] = 'True'
             ret_val['Name'] = h
