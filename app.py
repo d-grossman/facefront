@@ -49,16 +49,23 @@ def handle_post_file():
         # save the file into the hash of the filename
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
 
+      
+
         # read the file, find the face make the vector
         face_image = cv2.imread(os.path.join(
             app.config['UPLOAD_FOLDER'], file.filename))
-        enc = face.face_encodings(face_image, None)[0]
+
+        #get location of face so I can return it to gui.
+        list_face_locs = face.face_locations(face_image)
+
+        enc = face.face_encodings(face_image, list_face_locs)[0]
+        loc = list_face_locs[0]
         print('enc:', enc)
         sys.stdout.flush()
 
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
-    return enc, h
+    return loc,enc, h
 
 
 class working(Resource):
@@ -101,7 +108,7 @@ class make_group(Resource):
         print('request:', request)
         sys.stdout.flush()
 
-        enc, h = handle_post_file()
+        loc, enc, h = handle_post_file()
 
         if len is not None and len(enc) == 128:
             # valid data update the return
@@ -109,6 +116,7 @@ class make_group(Resource):
             ret_val['Group'] = 'True'
             ret_val['Name'] = h
             ret_val['Vec'] = list(enc)
+            ret_val['Loc'] = list(loc)
             face_group_search[group_name][h] = list(enc)
         # return back name of search vector
         return ret_val
@@ -125,13 +133,14 @@ class make_vector(Resource):
         print('request:', request)
         sys.stdout.flush()
 
-        enc, h = handle_post_file()
+        loc, enc, h = handle_post_file()
 
         if len is not None and len(enc) == 128:
             # valid data update the return
             ret_val['Found'] = 'True'
             ret_val['Name'] = h
             ret_val['Vec'] = list(enc)
+            ret_val['Loc'] = list(loc)
             face_search_vectors[h] = list(enc)
         # return back name of search vector
         return ret_val
