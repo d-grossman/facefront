@@ -29,7 +29,7 @@ parser = reqparse.RequestParser()
 
 def normalize_face(pic, places, jitters):
     ret_val = list()
-    
+
     for place in places:
         top, right, bottom, left = place
         landmarks = get_face_landmarks(
@@ -41,10 +41,12 @@ def normalize_face(pic, places, jitters):
         # sys.stdout.flush()
         #encoding = np.array(face.face_encodings( adjusted_face, [(0,0,150,150)], jitters) )
         #encoding = np.array(face.face_encodings( adjusted_face, [(150,150,0,0)], jitters) )
-        encoding = np.array(face.face_encodings(adjusted_face, [(0, 150, 150, 0)], jitters))
+        encoding = np.array(face.face_encodings(
+            adjusted_face, [(0, 150, 150, 0)], jitters))
         ret_val.append(encoding)
 
     return ret_val
+
 
 def handle_post_file():
     # get the image if it exists
@@ -73,15 +75,13 @@ def handle_post_file():
         face_image = cv2.imread(os.path.join(
             app.config['UPLOAD_FOLDER'], file.filename))
 
-
-
         # get location of face so I can return it to gui.
         list_face_locs = face.face_locations(face_image)
 
         #not normalize
         enc = face.face_encodings(face_image, list_face_locs)[0]
-        
-        #normalize
+
+        # normalize
         #list_face_locations = face.face_locations(face_image)
         #list_face_encodings = normalize_faces(face_image,list_face_locations,2)
         #enc = list_face_encodings[0][0]
