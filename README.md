@@ -1,10 +1,10 @@
 # Docker container for serving up data from processed videos
 
 ## build the container
-```docker build -f Dockerfile.flask -t facefront.flask .```
+```docker build -f Dockerfile.flask -t facefirst.flask .```
 
 ## run the container
-```docker run -p 5000:5000 facefront.flask```
+```docker run -p 5000:5000 facefirst.flask```
 
 ## Interacting with the container
 
