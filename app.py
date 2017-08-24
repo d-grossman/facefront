@@ -4,15 +4,15 @@ import pickle
 import sys
 from collections import defaultdict
 
+import cv2
 import numpy as np
 from flask import Flask, request
+from flask_restful import Api, Resource, abort, reqparse
 from PIL import Image
 from werkzeug.utils import secure_filename
-from helpers import vec2str, vec2hash, write_file
 
-import cv2
 from face import face
-from flask_restful import Api, Resource, abort, reqparse
+from helpers import vec2hash, vec2str, write_file
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/tmp/'
@@ -49,13 +49,11 @@ def handle_post_file():
         # save the file into the hash of the filename
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
 
-      
-
         # read the file, find the face make the vector
         face_image = cv2.imread(os.path.join(
             app.config['UPLOAD_FOLDER'], file.filename))
 
-        #get location of face so I can return it to gui.
+        # get location of face so I can return it to gui.
         list_face_locs = face.face_locations(face_image)
 
         enc = face.face_encodings(face_image, list_face_locs)[0]
@@ -65,7 +63,7 @@ def handle_post_file():
 
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
-    return loc,enc, h
+    return loc, enc, h
 
 
 class working(Resource):
@@ -116,7 +114,7 @@ class make_group(Resource):
             ret_val['Group'] = 'True'
             ret_val['Name'] = h
             ret_val['Vec'] = list(enc)
-            ret_val['Loc'] = list(loc)
+            ret_val['Upload_coords'] = list(loc)
             face_group_search[group_name][h] = list(enc)
         # return back name of search vector
         return ret_val
@@ -140,7 +138,7 @@ class make_vector(Resource):
             ret_val['Found'] = 'True'
             ret_val['Name'] = h
             ret_val['Vec'] = list(enc)
-            ret_val['Loc'] = list(loc)
+            ret_val['Upload_coords'] = list(loc)
             face_search_vectors[h] = list(enc)
         # return back name of search vector
         return ret_val
@@ -233,8 +231,8 @@ api.add_resource(find_by_vector, app.config[
 
 api.add_resource(working, app.config['V1.0'] + '/working')
 
-#TODO use thisone soon
-#api.add_resource(find_by_vector, app.config[
+# TODO use thisone soon
+# api.add_resource(find_by_vector, app.config[
 #                 'V1.0'] + '/findvector/<string:search_vector_name>/<float:distance>')
 
 api.add_resource(compare_2_uploads, app.config[
