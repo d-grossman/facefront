@@ -1,3 +1,4 @@
+import glob
 import hashlib
 import os
 import pickle
@@ -12,7 +13,7 @@ from PIL import Image
 from werkzeug.utils import secure_filename
 
 from face import face
-from helpers import vec2hash, vec2str, write_file
+from helpers import file_digest, vec2hash, vec2str, write_file, write_frame, hash_files
 from normalizeface import align_face_to_template, get_face_landmarks
 
 app = Flask(__name__)
@@ -23,9 +24,58 @@ api = Api(app)
 face_pickle = None
 face_search_vectors = None
 face_group_search = None
+hash2file = None
 
 parser = reqparse.RequestParser()
 
+class return_frame(Resource):
+    
+    def get(self, file_hash, frame_number):
+        ret_val = dict()
+
+        print('return_frame', file_hash, frame_number)
+        sys.stdout.flush()
+
+        for i in hash2file:
+            print(i, hash2file[i])
+            sys.stdout.flush()
+
+        try:
+            uri = hash2file[file_hash]
+        except Exception as e:
+            abort(
+                404, message='file_hash {0} does not exist'.format(file_hash))
+
+        if frame_number < 0:
+            abort(404, message='frame_number {0} must be >0'.format(
+                frame_number))
+
+        video_file = cv2.VideoCapture(hash2file[file_hash])
+        video_length = int(video_file.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        if frame_number > video_length:
+            abort(404, message='{0} > max length of vid {1}'.format(
+                frame_number, video_length))
+
+        video_file.set(1, frame_number)
+
+        keep_going, img = video_file.read()
+
+        if keep_going:
+            
+            meta = dict()
+            meta['File_hash'] = file_hash
+            meta['Frame_number'] = frame_number
+            ret_val['Meta'] = meta
+            ret_val['Frame'] = write_frame(file_hash, frame_number, img)
+            return ret_val
+            video_file.close()
+
+        else:
+            video_file.close()
+            abort(404, message='frame decode error')
+    
+  
 
 def normalize_face(pic, places, jitters):
     ret_val = list()
@@ -273,10 +323,13 @@ api.add_resource(make_group, app.config[
                  'V1.0'] + '/makegroup/<string:group_name>')
 api.add_resource(find_by_group, app.config[
                  'V1.0'] + '/findgroup/<string:group_name>/<float:distance>')
+api.add_resource(return_frame, app.config['V1.0'] +
+                 '/return_frame/<string:file_hash>/<int:frame_number>')
 
 if __name__ == '__main__':
     # load the pickl file
     face_search_vectors = dict()
     face_group_search = defaultdict(dict)
+    hash2file = hash_files('/data/*')
     face_pickle = pickle.load(open('./data/faces.pickle', 'rb'))
     app.run(debug=False, host='0.0.0.0')
