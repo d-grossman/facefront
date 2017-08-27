@@ -1,7 +1,8 @@
 import cv2
 import dlib
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from face import face
 
 FACIAL_LANDMARKS_TEMPLATE = np.float32([
@@ -79,3 +80,23 @@ def align_face_to_template(img, facial_landmarks, output_dim, landmarkIndices=OU
 
     return warped
 
+
+def normalize_faces(pic, places, jitters):
+    ret_val = list()
+
+    for place in places:
+        top, right, bottom, left = place
+        landmarks = get_face_landmarks(
+            face.pose_predictor, pic, dlib.rectangle(left, top, right, bottom))
+        # TODO make sure that 150 is the right size..
+        adjusted_face = align_face_to_template(pic, landmarks, 150)
+        # print('place',place)
+        # print('adjusted_face',adjusted_face.shape)
+        # sys.stdout.flush()
+        #encoding = np.array(face.face_encodings( adjusted_face, [(0,0,150,150)], jitters) )
+        #encoding = np.array(face.face_encodings( adjusted_face, [(150,150,0,0)], jitters) )
+        encoding = np.array(face.face_encodings(
+            adjusted_face, [(0, 150, 150, 0)], jitters))
+        ret_val.append(encoding)
+
+    return ret_val

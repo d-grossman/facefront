@@ -15,11 +15,13 @@ from werkzeug.utils import secure_filename
 from face import face
 from helpers import (file_digest, hash_files, vec2hash, vec2str, write_file,
                      write_frame)
-from normalizeface import align_face_to_template, get_face_landmarks
+from normalizeface import (align_face_to_template, get_face_landmarks,
+                           normalize_faces)
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/tmp/'
 app.config['V1.0'] = '/api/1.0'
+app.config['normalize'] = True
 api = Api(app)
 
 face_pickle = None
@@ -78,27 +80,6 @@ class return_frame(Resource):
             abort(404, message='frame decode error')
 
 
-def normalize_face(pic, places, jitters):
-    ret_val = list()
-
-    for place in places:
-        top, right, bottom, left = place
-        landmarks = get_face_landmarks(
-            face.pose_predictor, pic, dlib.rectangle(left, top, right, bottom))
-        # TODO make sure that 150 is the right size..
-        adjusted_face = align_face_to_template(pic, landmarks, 150)
-        # print('place',place)
-        # print('adjusted_face',adjusted_face.shape)
-        # sys.stdout.flush()
-        #encoding = np.array(face.face_encodings( adjusted_face, [(0,0,150,150)], jitters) )
-        #encoding = np.array(face.face_encodings( adjusted_face, [(150,150,0,0)], jitters) )
-        encoding = np.array(face.face_encodings(
-            adjusted_face, [(0, 150, 150, 0)], jitters))
-        ret_val.append(encoding)
-
-    return ret_val
-
-
 def handle_post_file():
     # get the image if it exists
     enc = None
@@ -127,15 +108,16 @@ def handle_post_file():
             app.config['UPLOAD_FOLDER'], file.filename))
 
         # get location of face so I can return it to gui.
-        list_face_locs = face.face_locations(face_image)
+        list_face_locs = face.face_locations(face_image, 2)
+        enc = None
 
-        #not normalize
-        enc = face.face_encodings(face_image, list_face_locs)[0]
-
-        # normalize
-        #list_face_locations = face.face_locations(face_image)
-        #list_face_encodings = normalize_faces(face_image,list_face_locations,2)
-        #enc = list_face_encodings[0][0]
+        if app.config['normalize']:
+            # normalize
+            list_face_encodings = normalize_faces(face_image, list_face_locs)
+            enc = list_face_encodings[0][0]
+        else:
+            #not normalize
+            enc = face.face_encodings(face_image, list_face_locs)[0]
 
         loc = list_face_locs[0]
         print('enc:', enc)
