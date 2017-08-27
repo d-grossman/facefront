@@ -58,6 +58,7 @@ RUN pip install scikit-image jupyter notebook tqdm
 ENV PYTHONPATH=/app:$PYTHONPATH
 
 RUN mkdir /app
+RUN mkdir /mdata
 WORKDIR /app
 COPY requirements.txt /app/
 RUN mkdir static

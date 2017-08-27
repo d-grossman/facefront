@@ -21,8 +21,8 @@ def vec2hash(v):
 
 
 def write_file(entity, prefix='static/'):
-    img = Image.fromarray(np.roll(entity['pic'], 1, axis=-1))
-    #img = Image.fromarray(np.roll(entity['face_pic'], 1, axis=-1))
+    #img = Image.fromarray(np.roll(entity['pic'], 1, axis=-1))
+    img = Image.fromarray(np.roll(entity['face_pic'], 1, axis=-1))
     base_name = vec2hash(entity['face_vec'])
     filename = '{0}.{1}'.format(base_name, 'jpg')
     uri = os.path.join(prefix, filename)

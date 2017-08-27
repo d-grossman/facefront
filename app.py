@@ -13,7 +13,8 @@ from PIL import Image
 from werkzeug.utils import secure_filename
 
 from face import face
-from helpers import file_digest, vec2hash, vec2str, write_file, write_frame, hash_files
+from helpers import (file_digest, hash_files, vec2hash, vec2str, write_file,
+                     write_frame)
 from normalizeface import align_face_to_template, get_face_landmarks
 
 app = Flask(__name__)
@@ -28,8 +29,9 @@ hash2file = None
 
 parser = reqparse.RequestParser()
 
+
 class return_frame(Resource):
-    
+
     def get(self, file_hash, frame_number):
         ret_val = dict()
 
@@ -62,7 +64,7 @@ class return_frame(Resource):
         keep_going, img = video_file.read()
 
         if keep_going:
-            
+
             meta = dict()
             meta['File_hash'] = file_hash
             meta['Frame_number'] = frame_number
@@ -74,8 +76,7 @@ class return_frame(Resource):
         else:
             video_file.close()
             abort(404, message='frame decode error')
-    
-  
+
 
 def normalize_face(pic, places, jitters):
     ret_val = list()
@@ -245,9 +246,8 @@ class find_by_group(Resource):
             for group_key in group_data:
                 entity = face_pickle[key]
                 entity_vec = entity['face_vec']
-                entity_pic = entity['pic']
-                #entity_pic = entity['face_pic']
-                entity_times = entity['times']
+                entity_pic = entity['face_pic']
+                entity_videos = entity['videos']
 
                 left = np.array(group_data[group_key])
                 right = np.array(entity_vec)
@@ -259,7 +259,7 @@ class find_by_group(Resource):
                     d = dict()
                     d['Name'] = key
                     d['Uri'] = write_file(entity)
-                    d['Times'] = entity_times
+                    d['Videos'] = entity_videos
                     d['Distance'] = vector_distance
                     ret_val.append(d)
         ret_val.sort(key=lambda temp_d: temp_d['Distance'])
@@ -285,9 +285,8 @@ class find_by_vector(Resource):
         for key in face_pickle:
             entity = face_pickle[key]
             entity_vec = entity['face_vec']
-            #entity_pic = entity['face_pic']
-            entity_pic = entity['pic']
-            entity_times = entity['times']
+            entity_pic = entity['face_pic']
+            entity_videos = entity['videos']
             left = np.array(face_search_vectors[search_vector_name])
             right = np.array(entity_vec)
 
@@ -298,7 +297,7 @@ class find_by_vector(Resource):
                 d = dict()
                 d['Name'] = key
                 d['Uri'] = write_file(entity)
-                d['Times'] = entity_times
+                d['Videos'] = entity_videos
                 d['Distance'] = vector_distance
                 ret_val.append(d)
 
@@ -330,6 +329,6 @@ if __name__ == '__main__':
     # load the pickl file
     face_search_vectors = dict()
     face_group_search = defaultdict(dict)
-    hash2file = hash_files('/data/*')
+    hash2file = hash_files('/mdata/*')
     face_pickle = pickle.load(open('./data/faces.pickle', 'rb'))
     app.run(debug=False, host='0.0.0.0')
