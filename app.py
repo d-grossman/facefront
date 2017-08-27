@@ -32,6 +32,55 @@ hash2file = None
 parser = reqparse.RequestParser()
 
 
+def handle_post_file():
+    # get the image if it exists
+    enc = None
+    h = None
+    if 'data' in request.files:
+
+        # get the filename
+        file = request.files['data']
+        # print('filename:', file.filename)
+        # sys.stdout.flush()
+
+        # keep the same extension on the file
+        extension = file.filename.split('.')[-1]
+
+        #@TODO add the time of the reference to keep things seperated
+        filename_h = hashlib.md5(file.filename.encode("utf")).hexdigest()
+
+        file.filename = '{0}.{1}'.format(filename_h, extension)
+        print('filename:', file.filename)
+
+        # save the file into the hash of the filename
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+
+        # read the file, find the face make the vector
+        face_image = cv2.imread(os.path.join(
+            app.config['UPLOAD_FOLDER'], file.filename))
+
+        # get location of face so I can return it to gui.
+        list_face_locs = face.face_locations(face_image, 2)
+        enc = None
+
+        if app.config['normalize']:
+            # normalize
+            list_face_encodings = normalize_faces(
+                face_image, list_face_locs, 2)
+            enc = list_face_encodings[0][0]
+        else:
+            #not normalize
+            enc = face.face_encodings(face_image, list_face_locs)[0]
+
+        loc = list_face_locs[0]
+        print('enc:', enc)
+        sys.stdout.flush()
+
+        # make a reference to the vector as a loose hash to the file
+        h = vec2hash(enc)
+    return loc, enc, h
+
+
 class return_frame(Resource):
 
     def get(self, file_hash, frame_number):
@@ -78,54 +127,6 @@ class return_frame(Resource):
         else:
             video_file.close()
             abort(404, message='frame decode error')
-
-
-def handle_post_file():
-    # get the image if it exists
-    enc = None
-    h = None
-    if 'data' in request.files:
-
-        # get the filename
-        file = request.files['data']
-        # print('filename:', file.filename)
-        # sys.stdout.flush()
-
-        # keep the same extension on the file
-        extension = file.filename.split('.')[-1]
-
-        #@TODO add the time of the reference to keep things seperated
-        filename_h = hashlib.md5(file.filename.encode("utf")).hexdigest()
-
-        file.filename = '{0}.{1}'.format(filename_h, extension)
-        print('filename:', file.filename)
-
-        # save the file into the hash of the filename
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-
-        # read the file, find the face make the vector
-        face_image = cv2.imread(os.path.join(
-            app.config['UPLOAD_FOLDER'], file.filename))
-
-        # get location of face so I can return it to gui.
-        list_face_locs = face.face_locations(face_image, 2)
-        enc = None
-
-        if app.config['normalize']:
-            # normalize
-            list_face_encodings = normalize_faces(face_image, list_face_locs,2)
-            enc = list_face_encodings[0][0]
-        else:
-            #not normalize
-            enc = face.face_encodings(face_image, list_face_locs)[0]
-
-        loc = list_face_locs[0]
-        print('enc:', enc)
-        sys.stdout.flush()
-
-        # make a reference to the vector as a loose hash to the file
-        h = vec2hash(enc)
-    return loc, enc, h
 
 
 class working(Resource):

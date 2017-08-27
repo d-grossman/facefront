@@ -1,11 +1,11 @@
+import glob
 import hashlib
 import os
+import sys
 
 import dlib
 import numpy as np
 from PIL import Image
-import glob
-import sys
 
 
 def vec2str(v):
@@ -43,7 +43,7 @@ def file_digest(in_filename):
 
 
 def write_frame(file_hash, frame_no, img, prefix='static/'):
-    
+
     frame_name = '{0}.{1}'.format(file_hash, frame_no)
     frame_name_hash = hashlib.md5(frame_name.encode('utf')).hexdigest()
     frame_filename = '{0}.jpg'.format(frame_name_hash)
@@ -52,6 +52,7 @@ def write_frame(file_hash, frame_no, img, prefix='static/'):
         my_img = Image.fromarray(np.roll(img, 1, axis=-1))
         my_img.save(uri)
     return uri
+
 
 def hash_files(location):
     ret_val = dict()
