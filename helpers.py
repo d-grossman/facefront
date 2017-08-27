@@ -21,7 +21,6 @@ def vec2hash(v):
 
 
 def write_file(entity, prefix='static/'):
-    #img = Image.fromarray(np.roll(entity['pic'], 1, axis=-1))
     img = Image.fromarray(np.roll(entity['face_pic'], 1, axis=-1))
     base_name = vec2hash(entity['face_vec'])
     filename = '{0}.{1}'.format(base_name, 'jpg')
@@ -44,12 +43,13 @@ def file_digest(in_filename):
 
 
 def write_frame(file_hash, frame_no, img, prefix='static/'):
+    
     frame_name = '{0}.{1}'.format(file_hash, frame_no)
     frame_name_hash = hashlib.md5(frame_name.encode('utf')).hexdigest()
     frame_filename = '{0}.jpg'.format(frame_name_hash)
     uri = os.path.join(prefix, frame_filename)
     if not os.path.isfile(uri):
-        my_img = Image.fromarray(img)
+        my_img = Image.fromarray(np.roll(img, 1, axis=-1))
         my_img.save(uri)
     return uri
 

@@ -113,7 +113,7 @@ def handle_post_file():
 
         if app.config['normalize']:
             # normalize
-            list_face_encodings = normalize_faces(face_image, list_face_locs)
+            list_face_encodings = normalize_faces(face_image, list_face_locs,2)
             enc = list_face_encodings[0][0]
         else:
             #not normalize
