@@ -32,6 +32,54 @@ hash2file = None
 parser = reqparse.RequestParser()
 
 
+class return_frame(Resource):
+
+    def get(self, file_hash, frame_number):
+        ret_val = dict()
+
+        print('return_frame', file_hash, frame_number)
+        sys.stdout.flush()
+
+        for i in hash2file:
+            print(i, hash2file[i])
+            sys.stdout.flush()
+
+        try:
+            uri = hash2file[file_hash]
+        except Exception as e:
+            abort(
+                404, message='file_hash {0} does not exist'.format(file_hash))
+
+        if frame_number < 0:
+            abort(404, message='frame_number {0} must be >0'.format(
+                frame_number))
+
+        video_file = cv2.VideoCapture(hash2file[file_hash])
+        video_length = int(video_file.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        if frame_number > video_length:
+            abort(404, message='{0} > max length of vid {1}'.format(
+                frame_number, video_length))
+
+        video_file.set(1, frame_number)
+
+        keep_going, img = video_file.read()
+
+        if keep_going:
+
+            meta = dict()
+            meta['File_hash'] = file_hash
+            meta['Frame_number'] = frame_number
+            ret_val['Meta'] = meta
+            ret_val['Frame'] = write_frame(file_hash, frame_number, img)
+            video_file.close()
+            return ret_val
+
+        else:
+            video_file.close()
+            abort(404, message='frame decode error')
+
+
 def handle_post_file():
     # get the image if it exists
     enc = None
@@ -79,54 +127,6 @@ def handle_post_file():
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
     return loc, enc, h
-
-
-class return_frame(Resource):
-
-    def get(self, file_hash, frame_number):
-        ret_val = dict()
-
-        print('return_frame', file_hash, frame_number)
-        sys.stdout.flush()
-
-        for i in hash2file:
-            print(i, hash2file[i])
-            sys.stdout.flush()
-
-        try:
-            uri = hash2file[file_hash]
-        except Exception as e:
-            abort(
-                404, message='file_hash {0} does not exist'.format(file_hash))
-
-        if frame_number < 0:
-            abort(404, message='frame_number {0} must be >0'.format(
-                frame_number))
-
-        video_file = cv2.VideoCapture(hash2file[file_hash])
-        video_length = int(video_file.get(cv2.CAP_PROP_FRAME_COUNT))
-
-        if frame_number > video_length:
-            abort(404, message='{0} > max length of vid {1}'.format(
-                frame_number, video_length))
-
-        video_file.set(1, frame_number)
-
-        keep_going, img = video_file.read()
-
-        if keep_going:
-
-            meta = dict()
-            meta['File_hash'] = file_hash
-            meta['Frame_number'] = frame_number
-            ret_val['Meta'] = meta
-            ret_val['Frame'] = write_frame(file_hash, frame_number, img)
-            return ret_val
-            video_file.close()
-
-        else:
-            video_file.close()
-            abort(404, message='frame decode error')
 
 
 class working(Resource):
