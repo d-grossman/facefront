@@ -72,11 +72,11 @@ class return_frame(Resource):
             meta['Frame_number'] = frame_number
             ret_val['Meta'] = meta
             ret_val['Frame'] = write_frame(file_hash, frame_number, img)
-            video_file.close()
+            #video_file.close()
             return ret_val
 
         else:
-            video_file.close()
+            #video_file.close()
             abort(404, message='frame decode error')
 
 
