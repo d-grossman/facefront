@@ -82,14 +82,20 @@ class return_frame(Resource):
 
 def handle_post_file():
     # get the image if it exists
-    enc = None
-    h = None
-    if 'data' in request.files:
+    retval = []
+    #loc = None
+    #enc = None
+    #h = None
+
+    print('******************************')
+    print('request.files:', request.files)
+    print('request.files.keys:', list(request.files.keys()))
+    sys.stdout.flush()
+
+    for file_key in request.files.keys():
 
         # get the filename
-        file = request.files['data']
-        # print('filename:', file.filename)
-        # sys.stdout.flush()
+        file = request.files[file_key]
 
         # keep the same extension on the file
         extension = file.filename.split('.')[-1]
@@ -126,7 +132,9 @@ def handle_post_file():
 
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
-    return loc, enc, h
+        temp = (loc,enc,h)
+        retval.append(temp)
+    return retval
 
 
 class working(Resource):
@@ -160,25 +168,29 @@ class compare_2_uploads(Resource):
 class make_group(Resource):
 
     def post(self, group_name):
-        ret_val = dict()
-        ret_val['Found'] = 'False'
-        ret_val['Name'] = 'None'
-        ret_val['Group'] = 'False'
+        ret_val = list()
         args = parser.parse_args()
         print('args:', args)
         print('request:', request)
         sys.stdout.flush()
 
-        loc, enc, h = handle_post_file()
+        loc_enc_h = handle_post_file()
 
-        if len is not None and len(enc) == 128:
+        for loc, enc, h in loc_enc_h:
+            cur_val = dict()
+            cur_val['Found'] = 'False'
+            cur_val['Name'] = 'None'
+            cur_val['Group'] = 'False'
+
+            if len is not None and len(enc) == 128:
             # valid data update the return
-            ret_val['Found'] = 'True'
-            ret_val['Group'] = 'True'
-            ret_val['Name'] = h
-            ret_val['Vec'] = list(enc)
-            ret_val['Upload_coords'] = list(loc)
-            face_group_search[group_name][h] = list(enc)
+                cur_val['Found'] = 'True'
+                cur_val['Group'] = 'True'
+                cur_val['Name'] = h
+                cur_val['Vec'] = list(enc)
+                cur_val['Upload_coords'] = list(loc)
+                face_group_search[group_name][h] = list(enc)
+            ret_val.append(cur_val)
         # return back name of search vector
         return ret_val
 
@@ -186,23 +198,27 @@ class make_group(Resource):
 class make_vector(Resource):
 
     def post(self):
-        ret_val = dict()
-        ret_val['Found'] = 'False'
-        ret_val['Name'] = 'None'
+        ret_val = list()
         args = parser.parse_args()
         print('args:', args)
         print('request:', request)
         sys.stdout.flush()
 
-        loc, enc, h = handle_post_file()
+        loc_enc_h = handle_post_file()
 
-        if len is not None and len(enc) == 128:
-            # valid data update the return
-            ret_val['Found'] = 'True'
-            ret_val['Name'] = h
-            ret_val['Vec'] = list(enc)
-            ret_val['Upload_coords'] = list(loc)
-            face_search_vectors[h] = list(enc)
+        for loc, enc, h in loc_enc_h:
+            cur_val = dict()
+            cur_val['Found'] = 'False'
+            cur_val['Name'] = 'None'
+
+            if len is not None and len(enc) == 128:
+                # valid data update the return
+                cur_val['Found'] = 'True'
+                cur_val['Name'] = h
+                cur_val['Vec'] = list(enc)
+                cur_val['Upload_coords'] = list(loc)
+                face_search_vectors[h] = list(enc)
+            ret_val.append(cur_val)        
         # return back name of search vector
         return ret_val
 
