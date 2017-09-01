@@ -129,7 +129,7 @@ def handle_post_file():
 
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
-        temp = (loc,enc,h)
+        temp = (loc, enc, h)
         retval.append(temp)
     return retval
 
@@ -182,7 +182,7 @@ class make_group(Resource):
             cur_val['Group'] = 'False'
 
             if len is not None and len(enc) == 128:
-            # valid data update the return
+                # valid data update the return
                 cur_val['Found'] = 'True'
                 cur_val['Group'] = 'True'
                 cur_val['Name'] = h
@@ -217,7 +217,7 @@ class make_vector(Resource):
                 cur_val['Vec'] = list(enc)
                 cur_val['Upload_coords'] = list(loc)
                 face_search_vectors[h] = list(enc)
-            ret_val.append(cur_val)        
+            ret_val.append(cur_val)
         # return back name of search vector
         return ret_val
 
