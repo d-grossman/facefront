@@ -3,7 +3,6 @@ import hashlib
 import os
 import sys
 
-import dlib
 import numpy as np
 from PIL import Image
 

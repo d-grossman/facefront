@@ -1,4 +1,3 @@
-import glob
 import hashlib
 import os
 import pickle
@@ -9,8 +8,6 @@ import cv2
 import numpy as np
 from flask import Flask, request
 from flask_restful import Api, Resource, abort, reqparse
-from PIL import Image
-from werkzeug.utils import secure_filename
 
 from face import face
 from helpers import (file_digest, hash_files, vec2hash, vec2str, write_file,
@@ -40,6 +37,8 @@ class return_frame(Resource):
         print('return_frame', file_hash, frame_number)
         sys.stdout.flush()
 
+        uri = None
+
         for i in hash2file:
             print(i, hash2file[i])
             sys.stdout.flush()
@@ -48,13 +47,16 @@ class return_frame(Resource):
             uri = hash2file[file_hash]
         except Exception as e:
             abort(
-                404, message='file_hash {0} does not exist'.format(file_hash))
+                404,
+                message='{0} file_hash {1} does not exist'.format(
+                    e,
+                    file_hash))
 
         if frame_number < 0:
             abort(404, message='frame_number {0} must be >0'.format(
                 frame_number))
 
-        video_file = cv2.VideoCapture(hash2file[file_hash])
+        video_file = cv2.VideoCapture(uri)
         video_length = int(video_file.get(cv2.CAP_PROP_FRAME_COUNT))
 
         if frame_number > video_length:
@@ -72,11 +74,11 @@ class return_frame(Resource):
             meta['Frame_number'] = frame_number
             ret_val['Meta'] = meta
             ret_val['Frame'] = write_frame(file_hash, frame_number, img)
-            #video_file.close()
+            # video_file.close()
             return ret_val
 
         else:
-            #video_file.close()
+            # video_file.close()
             abort(404, message='frame decode error')
 
 
@@ -132,7 +134,7 @@ def handle_post_file():
 
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
-        temp = (loc,enc,h)
+        temp = (loc, enc, h)
         retval.append(temp)
     return retval
 
@@ -149,13 +151,15 @@ class compare_2_uploads(Resource):
         try:
             vector1 = face_search_vectors[search_vector_name1]
         except Exception as e:
-            abort(404, message='{0} vector ref {1} does not exist'.format(e,
-                                                                          search_vector_name1))
+            abort(
+                404, message='{0} vector ref {1} does not exist'.format(
+                    e, search_vector_name1))
         try:
             vector2 = face_search_vectors[search_vector_name2]
         except Exception as e:
-            abort(404, message='{0} vector ref {1} does not exist'.format(e,
-                                                                          search_vector_name2))
+            abort(
+                404, message='{0} vector ref {1} does not exist'.format(
+                    e, search_vector_name2))
         distance = face.face_distance(
             [np.array(vector1)], np.array(vector2))[0]
         d = dict()
@@ -183,7 +187,7 @@ class make_group(Resource):
             cur_val['Group'] = 'False'
 
             if len is not None and len(enc) == 128:
-            # valid data update the return
+                # valid data update the return
                 cur_val['Found'] = 'True'
                 cur_val['Group'] = 'True'
                 cur_val['Name'] = h
@@ -218,7 +222,7 @@ class make_vector(Resource):
                 cur_val['Vec'] = list(enc)
                 cur_val['Upload_coords'] = list(loc)
                 face_search_vectors[h] = list(enc)
-            ret_val.append(cur_val)        
+            ret_val.append(cur_val)
         # return back name of search vector
         return ret_val
 
@@ -231,11 +235,13 @@ class find_by_group(Resource):
         try:
             group_data = face_group_search[group_name]
         except Exception as e:
-            abort(404, message='group {0} does not exist'.format(group_name))
+            abort(404, message='{0} group {1} does not exist'.format(
+                e, group_name))
 
         if distance > 1.0 or distance < 0:
             abort(
-                404, message='distance {0} must be between [0,1]'.format(distance))
+                404,
+                message='distance {0} must be between [0,1]'.format(distance))
 
         print('group_name', group_name)
         print('distance', distance)
@@ -274,12 +280,14 @@ class find_by_vector(Resource):
         try:
             vector = face_search_vectors[search_vector_name]
         except Exception as e:
-            abort(404, message='searchvector {1} does not exist'.format(
-                search_vector_name))
+            abort(
+                404, message='{0} searchvector {1} does not exist'.format(
+                    e, search_vector_name))
 
         if distance > 1.0 or distance < 0:
             abort(
-                404, message='distance {0} must be between [0,1]'.format(distance))
+                404,
+                message='distance {0} must be between [0,1]'.format(distance))
 
         for key in face_pickle:
             entity = face_pickle[key]
@@ -305,8 +313,10 @@ class find_by_vector(Resource):
 
 
 # TODO get rid of this one.
-api.add_resource(find_by_vector, app.config[
-                 'V1.0'] + '/find/<string:search_vector_name>/<float:distance>')
+api.add_resource(
+    find_by_vector,
+    app.config['V1.0'] +
+    '/find/<string:search_vector_name>/<float:distance>')
 
 api.add_resource(working, app.config['V1.0'] + '/working')
 
@@ -314,8 +324,10 @@ api.add_resource(working, app.config['V1.0'] + '/working')
 # api.add_resource(find_by_vector, app.config[
 #                 'V1.0'] + '/findvector/<string:search_vector_name>/<float:distance>')
 
-api.add_resource(compare_2_uploads, app.config[
-                 'V1.0'] + '/compare2uploads/<string:search_vector_name1>/<string:search_vector_name2>')
+api.add_resource(
+    compare_2_uploads,
+    app.config['V1.0'] +
+    '/compare2uploads/<string:search_vector_name1>/<string:search_vector_name2>')
 api.add_resource(make_vector, app.config['V1.0'] + '/makevector')
 api.add_resource(make_group, app.config[
                  'V1.0'] + '/makegroup/<string:group_name>')
