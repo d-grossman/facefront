@@ -1,4 +1,3 @@
-import glob
 import hashlib
 import os
 import pickle
@@ -9,8 +8,6 @@ import cv2
 import numpy as np
 from flask import Flask, request
 from flask_restful import Api, Resource, abort, reqparse
-from PIL import Image
-from werkzeug.utils import secure_filename
 
 from face import face
 from helpers import (file_digest, hash_files, vec2hash, vec2str, write_file,
@@ -50,7 +47,10 @@ class return_frame(Resource):
             uri = hash2file[file_hash]
         except Exception as e:
             abort(
-                404, message='{0} file_hash {1} does not exist'.format(e, file_hash))
+                404,
+                message='{0} file_hash {1} does not exist'.format(
+                    e,
+                    file_hash))
 
         if frame_number < 0:
             abort(404, message='frame_number {0} must be >0'.format(
@@ -151,13 +151,15 @@ class compare_2_uploads(Resource):
         try:
             vector1 = face_search_vectors[search_vector_name1]
         except Exception as e:
-            abort(404, message='{0} vector ref {1} does not exist'.format(e,
-                                                                          search_vector_name1))
+            abort(
+                404, message='{0} vector ref {1} does not exist'.format(
+                    e, search_vector_name1))
         try:
             vector2 = face_search_vectors[search_vector_name2]
         except Exception as e:
-            abort(404, message='{0} vector ref {1} does not exist'.format(e,
-                                                                          search_vector_name2))
+            abort(
+                404, message='{0} vector ref {1} does not exist'.format(
+                    e, search_vector_name2))
         distance = face.face_distance(
             [np.array(vector1)], np.array(vector2))[0]
         d = dict()
@@ -238,7 +240,8 @@ class find_by_group(Resource):
 
         if distance > 1.0 or distance < 0:
             abort(
-                404, message='distance {0} must be between [0,1]'.format(distance))
+                404,
+                message='distance {0} must be between [0,1]'.format(distance))
 
         print('group_name', group_name)
         print('distance', distance)
@@ -277,12 +280,14 @@ class find_by_vector(Resource):
         try:
             vector = face_search_vectors[search_vector_name]
         except Exception as e:
-            abort(404, message='{0} searchvector {1} does not exist'.format(e,
-                                                                            search_vector_name))
+            abort(
+                404, message='{0} searchvector {1} does not exist'.format(
+                    e, search_vector_name))
 
         if distance > 1.0 or distance < 0:
             abort(
-                404, message='distance {0} must be between [0,1]'.format(distance))
+                404,
+                message='distance {0} must be between [0,1]'.format(distance))
 
         for key in face_pickle:
             entity = face_pickle[key]
@@ -308,8 +313,10 @@ class find_by_vector(Resource):
 
 
 # TODO get rid of this one.
-api.add_resource(find_by_vector, app.config[
-                 'V1.0'] + '/find/<string:search_vector_name>/<float:distance>')
+api.add_resource(
+    find_by_vector,
+    app.config['V1.0'] +
+    '/find/<string:search_vector_name>/<float:distance>')
 
 api.add_resource(working, app.config['V1.0'] + '/working')
 
@@ -317,8 +324,10 @@ api.add_resource(working, app.config['V1.0'] + '/working')
 # api.add_resource(find_by_vector, app.config[
 #                 'V1.0'] + '/findvector/<string:search_vector_name>/<float:distance>')
 
-api.add_resource(compare_2_uploads, app.config[
-                 'V1.0'] + '/compare2uploads/<string:search_vector_name1>/<string:search_vector_name2>')
+api.add_resource(
+    compare_2_uploads,
+    app.config['V1.0'] +
+    '/compare2uploads/<string:search_vector_name1>/<string:search_vector_name2>')
 api.add_resource(make_vector, app.config['V1.0'] + '/makevector')
 api.add_resource(make_group, app.config[
                  'V1.0'] + '/makegroup/<string:group_name>')
