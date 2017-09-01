@@ -50,7 +50,7 @@ class return_frame(Resource):
             uri = hash2file[file_hash]
         except Exception as e:
             abort(
-                404, message='{0} file_hash {1} does not exist'.format(e,file_hash))
+                404, message='{0} file_hash {1} does not exist'.format(e, file_hash))
 
         if frame_number < 0:
             abort(404, message='frame_number {0} must be >0'.format(
