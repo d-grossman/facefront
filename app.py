@@ -50,7 +50,7 @@ class return_frame(Resource):
             uri = hash2file[file_hash]
         except Exception as e:
             abort(
-                404, message='file_hash {0} does not exist'.format(file_hash))
+                404, message='{0} file_hash {1} does not exist'.format(e,file_hash))
 
         if frame_number < 0:
             abort(404, message='frame_number {0} must be >0'.format(
@@ -74,11 +74,11 @@ class return_frame(Resource):
             meta['Frame_number'] = frame_number
             ret_val['Meta'] = meta
             ret_val['Frame'] = write_frame(file_hash, frame_number, img)
-            #video_file.close()
+            # video_file.close()
             return ret_val
 
         else:
-            #video_file.close()
+            # video_file.close()
             abort(404, message='frame decode error')
 
 
@@ -121,7 +121,8 @@ def handle_post_file():
 
         if app.config['normalize']:
             # normalize
-            list_face_encodings = normalize_faces(face_image, list_face_locs, 2)
+            list_face_encodings = normalize_faces(
+                face_image, list_face_locs, 2)
             enc = list_face_encodings[0][0]
         else:
             #not normalize
@@ -133,7 +134,7 @@ def handle_post_file():
 
         # make a reference to the vector as a loose hash to the file
         h = vec2hash(enc)
-        temp = (loc,enc,h)
+        temp = (loc, enc, h)
         retval.append(temp)
     return retval
 
@@ -184,7 +185,7 @@ class make_group(Resource):
             cur_val['Group'] = 'False'
 
             if len is not None and len(enc) == 128:
-            # valid data update the return
+                # valid data update the return
                 cur_val['Found'] = 'True'
                 cur_val['Group'] = 'True'
                 cur_val['Name'] = h
@@ -219,7 +220,7 @@ class make_vector(Resource):
                 cur_val['Vec'] = list(enc)
                 cur_val['Upload_coords'] = list(loc)
                 face_search_vectors[h] = list(enc)
-            ret_val.append(cur_val)        
+            ret_val.append(cur_val)
         # return back name of search vector
         return ret_val
 
@@ -232,7 +233,8 @@ class find_by_group(Resource):
         try:
             group_data = face_group_search[group_name]
         except Exception as e:
-            abort(404, message='group {0} does not exist'.format(group_name))
+            abort(404, message='{0} group {1} does not exist'.format(
+                e, group_name))
 
         if distance > 1.0 or distance < 0:
             abort(
@@ -275,8 +277,8 @@ class find_by_vector(Resource):
         try:
             vector = face_search_vectors[search_vector_name]
         except Exception as e:
-            abort(404, message='searchvector {1} does not exist'.format(
-                search_vector_name))
+            abort(404, message='{0} searchvector {1} does not exist'.format(e,
+                                                                            search_vector_name))
 
         if distance > 1.0 or distance < 0:
             abort(
