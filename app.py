@@ -43,14 +43,12 @@ class return_frame(Resource):
             print(i, hash2file[i])
             sys.stdout.flush()
 
-        try:
-            uri = hash2file[file_hash]
-        except Exception as e:
+        if file_hash in hash2file:
+            uri = hash2file[file_hash]['Location']
+        else:
             abort(
                 404,
-                message='{0} file_hash {1} does not exist'.format(
-                    e,
-                    file_hash))
+                message='file_hash {1} does not exist'.format(file_hash))
 
         if frame_number < 0:
             abort(404, message='frame_number {0} must be >0'.format(
@@ -137,6 +135,22 @@ def handle_post_file():
         temp = (loc, enc, h)
         retval.append(temp)
     return retval
+
+
+class return_feeds(Resource):
+
+    def get(self):
+        ret_val = dict()
+        meta = dict()
+        m_count = dict()
+        m_count['count'] = len(hash2file.keys())
+        meta['result_set'] = m_count
+        ret_val['meta'] = meta
+        results = list()
+        for h in hash2file:
+            results.append(hash2file[h])
+        ret_val['resutls'] = results
+        return ret_val
 
 
 class working(Resource):
@@ -335,6 +349,7 @@ api.add_resource(find_by_group, app.config[
                  'V1.0'] + '/findgroup/<string:group_name>/<float:distance>')
 api.add_resource(return_frame, app.config['V1.0'] +
                  '/return_frame/<string:file_hash>/<int:frame_number>')
+api.add_resource(return_feeds, app.config['V1.0'] + '/feeds')
 
 if __name__ == '__main__':
     # load the pickl file

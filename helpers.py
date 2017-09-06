@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 from PIL import Image
+from collections import defaultdict./
 
 
 def vec2str(v):
@@ -54,15 +55,18 @@ def write_frame(file_hash, frame_no, img, prefix='static/'):
 
 
 def hash_files(location):
-    ret_val = dict()
+    ret_val = defaultdict(dict)
     files = glob.glob(location)
     print('files:', files)
     sys.stdout.flush()
     for f in files:
+        name = f.split('_')[0]
         ext = f.split('.')[-1]
         if ext in ['avi', 'mov', 'mp4']:
             file_hash = file_digest(f)
-            ret_val[file_hash] = f
+            ret_val[file_hash]['Location'] = f
+            ret_val[file_hash]['Hash'] = file_hash
+            ret_val[file_hahs]['Name'] = name
             print('found: {0}:{1}'.format(file_hash, f.split('/')[-1]))
             sys.stdout.flush()
     return ret_val
