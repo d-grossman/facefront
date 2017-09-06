@@ -5,7 +5,7 @@ import sys
 
 import numpy as np
 from PIL import Image
-from collections import defaultdict./
+from collections import defaultdict
 
 
 def vec2str(v):
