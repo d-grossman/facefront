@@ -66,7 +66,7 @@ def hash_files(location):
             file_hash = file_digest(f)
             ret_val[file_hash]['Location'] = f
             ret_val[file_hash]['Hash'] = file_hash
-            ret_val[file_hahs]['Name'] = name
+            ret_val[file_hash]['Name'] = name
             print('found: {0}:{1}'.format(file_hash, f.split('/')[-1]))
             sys.stdout.flush()
     return ret_val
