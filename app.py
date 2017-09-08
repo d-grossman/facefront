@@ -5,7 +5,6 @@ import sys
 from collections import defaultdict
 
 import numpy as np
-
 from flask import Flask, request
 
 import cv2
@@ -85,9 +84,9 @@ def handle_post_file():
     # get the image if it exists
     retval = []
 
-    print('******************************')
-    print('request.files:', request.files)
-    print('request.files.keys:', list(request.files.keys()))
+    # print('******************************')
+    #print('request.files:', request.files)
+    #print('request.files.keys:', list(request.files.keys()))
     sys.stdout.flush()
 
     for file_key in request.files.keys():
@@ -125,7 +124,7 @@ def handle_post_file():
             enc = face.face_encodings(face_image, list_face_locs)[0]
 
         loc = list_face_locs[0]
-        print('enc:', enc)
+        print('enc_len:', len(enc))
         sys.stdout.flush()
 
         # make a reference to the vector as a loose hash to the file
@@ -193,8 +192,8 @@ class d_make_group(Resource):
     def post(self, group_name):
         ret_val = list()
         args = parser.parse_args()
-        print('args:', args)
-        print('request:', request)
+        #print('args:', args)
+        #print('request:', request)
         sys.stdout.flush()
 
         loc_enc_h = handle_post_file()
@@ -231,10 +230,10 @@ class make_result_matches(Resource):
         dist_name = 'threshold'
 
         args = parser.parse_args()
-        print('args:', args)
-        print('request:', request)
-        print('request.data:', request.data)
-        print('request.form:', request.form)
+        #print('args:', args)
+        #print('request:', request)
+        #print('request.data:', request.data)
+        #print('request.form:', request.form)
 
         if dist_name not in request.form:
             abort(404, message='threshold not specified')
@@ -259,8 +258,8 @@ class make_result_matches(Resource):
 
         meta['result_set'] = self.make_result_set(ret_val['results'])
 
-        print('len:', len(loc_enc_h))
-        print('threshold:', distance)
+        #print('len:', len(loc_enc_h))
+        #print('threshold:', distance)
         sys.stdout.flush()
 
         return ret_val
@@ -268,16 +267,20 @@ class make_result_matches(Resource):
     def make_result_set(self, results):
         result_set = {}
 
+        # print('*********************')
+        # print(results)
+        # print('*********************')
+
         frame_count = 0
         result_count = 0
         for result in results:
             #print('result:', result)
             #print('results[\'video\']', result['videos'])
-            sys.stdout.flush()
-            result_count += 1
-            print('result_count:',result_count)
             for video in result['videos']:
+                result_count += 1
                 frame_count += len(video['frames'])
+                # print('result_count:',result_count)
+                # sys.stdout.flush()
         result_set['matches'] = frame_count
         result_set['count'] = result_count
 
@@ -309,8 +312,8 @@ class make_result_matches(Resource):
     def make_result_array(self, meta):
 
         distance = meta['query']['threshold']
-        print('meta.keys:', meta.keys())
-        sys.stdout.flush()
+        #print('meta.keys:', meta.keys())
+        #sys.stdout.flush()
         vectors = meta['vector_set']['vectors']
 
         video_array = []
@@ -339,6 +342,11 @@ class make_result_matches(Resource):
                     video_array.append(entry)
 
             video_array.sort(key=lambda temp_d: temp_d['distance'])
+
+            # print('videoArray*********************************')
+            # print(video_array)
+            # print('videoArray*********************************')
+
             return video_array
 
     def proc_videos(self, videos):
