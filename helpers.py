@@ -60,7 +60,7 @@ def hash_files(location):
     print('files:', files)
     sys.stdout.flush()
     for f in files:
-        name = f.split('_')[0]
+        name = f.split('/')[-1]
         ext = f.split('.')[-1]
         if ext in ['avi', 'mov', 'mp4']:
             file_hash = file_digest(f)

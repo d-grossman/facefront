@@ -138,18 +138,42 @@ def handle_post_file():
 
 
 class return_feeds(Resource):
+    ''''
+    retval: {
+        meta: {
+            result_set: {
+                count: 3
+            }
+        },
+        results: [
+            {
+                name: "Name",
+                hash: "01f678d7122a2c64eef9c02cde82ef29",
+                uri: "/static/01f678d7122a2c64eef9c02cde82ef29.mp4"
+            },
+            {...},
+            {...}
+        ]
+    }
+    '''
 
     def get(self):
         ret_val = dict()
         meta = dict()
+        results = list()
         m_count = dict()
+
         m_count['count'] = len(hash2file.keys())
         meta['result_set'] = m_count
+
         ret_val['meta'] = meta
-        results = list()
         for h in hash2file:
-            results.append(hash2file[h])
-        ret_val['resutls'] = results
+            val = dict()
+            val['name'] = hash2file[h]['Name']
+            val['hash'] = hash2file[h]['Hash']
+            val['uri'] = hash2file[h]['Location'] 
+            results.append(val)
+        ret_val['results'] = results
         return ret_val
 
 
