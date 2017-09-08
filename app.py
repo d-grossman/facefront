@@ -4,12 +4,12 @@ import pickle
 import sys
 from collections import defaultdict
 
-import cv2
 import numpy as np
 from flask import Flask, request
-from flask_restful import Api, Resource, abort, reqparse
 
+import cv2
 from face import face
+from flask_restful import Api, Resource, abort, reqparse
 from helpers import (file_digest, hash_files, vec2hash, vec2str, write_file,
                      write_frame)
 from normalizeface import (align_face_to_template, get_face_landmarks,
@@ -83,9 +83,6 @@ class return_frame(Resource):
 def handle_post_file():
     # get the image if it exists
     retval = []
-    #loc = None
-    #enc = None
-    #h = None
 
     print('******************************')
     print('request.files:', request.files)
@@ -138,24 +135,6 @@ def handle_post_file():
 
 
 class return_feeds(Resource):
-    ''''
-    retval: {
-        meta: {
-            result_set: {
-                count: 3
-            }
-        },
-        results: [
-            {
-                name: "Name",
-                hash: "01f678d7122a2c64eef9c02cde82ef29",
-                uri: "/static/01f678d7122a2c64eef9c02cde82ef29.mp4"
-            },
-            {...},
-            {...}
-        ]
-    }
-    '''
 
     def get(self):
         ret_val = dict()
@@ -171,8 +150,8 @@ class return_feeds(Resource):
             val = dict()
             val['name'] = hash2file[h]['Name']
             val['hash'] = hash2file[h]['Hash']
-            val['location'] = hash2file[h]['Location'] 
-            val['uri'] = '/static/'+ val['name']
+            val['location'] = hash2file[h]['Location']
+            val['uri'] = '/static/' + val['name']
             results.append(val)
         ret_val['results'] = results
         return ret_val
@@ -184,7 +163,7 @@ class working(Resource):
         return{'working': 'yes'}
 
 
-class compare_2_uploads(Resource):
+class d_compare_2_uploads(Resource):
 
     def get(self, search_vector_name1, search_vector_name2):
         try:
@@ -208,7 +187,7 @@ class compare_2_uploads(Resource):
         return d
 
 
-class make_group(Resource):
+class d_make_group(Resource):
 
     def post(self, group_name):
         ret_val = list()
@@ -238,7 +217,150 @@ class make_group(Resource):
         return ret_val
 
 
-class make_vector(Resource):
+class make_result_matches(Resource):
+    def post(self):
+        ret_val = {}
+        query = {}
+        meta = {}
+        feeds = None
+        result_set = {}
+        vector_set = {}
+        results = []
+
+        dist_name = 'threshold'
+
+        args = parser.parse_args()
+        print('args:', args)
+        print('request:', request)
+        print('request.data:', request.data)
+        print('request.form:', request.form)
+
+        if dist_name not in request.form:
+            abort(404, message='threshold not specified')
+
+        distance = float(request.form[dist_name])
+
+        if distance > 1.0 or distance < 0:
+            abort(
+                404,
+                message='threshold {0} must be between [0,1]'.format(distance))
+        sys.stdout.flush()
+
+        query['feeds'] = self.make_feeds()
+        query['threshold'] = distance
+        meta['query'] = query
+
+        loc_enc_h = handle_post_file()
+        meta['vector_set'] = self.make_vector_set(loc_enc_h)
+
+        ret_val['meta'] = meta
+        ret_val['results'] = self.make_result_array(meta)
+
+        meta['result_set'] = self.make_result_set(ret_val['results'])
+
+        print('len:', len(loc_enc_h))
+        print('threshold:', distance)
+        sys.stdout.flush()
+
+        return ret_val
+
+    def make_result_set(self, results):
+        result_set = {}
+
+        frame_count = 0
+        result_count = 0
+        for result in results:
+            print('result:', result)
+            print('results[\'video\']', result['videos'])
+            sys.stdout.flush()
+            result_count += 1
+            for video in result['videos']:
+                frame_count += len(video['frames'])
+        result_set['matches'] = frame_count
+        result_set['count'] = result_count
+
+        return result_set
+
+    def make_feeds(self):
+        feeds = {}
+        for h in hash2file:
+            val = {}
+            val['name'] = hash2file[h]['Name']
+            feeds[hash2file[h]['Hash']] = val
+        return feeds
+
+    def make_vector_set(self, loc_enc_h):
+        vector_set = {}
+        vectors = []
+
+        for loc, enc, h in loc_enc_h:
+            if enc is not None and len(enc) == 128:
+                entity = {}
+                entity['hash'] = h
+                entity['face_coordinates'] = loc
+                entity['vector'] = list(enc)
+                vectors.append(entity)
+        vector_set['count'] = len(vectors)
+        vector_set['vectors'] = vectors
+        return vector_set
+
+    def make_result_array(self, meta):
+
+        distance = meta['query']['threshold']
+        print('meta.keys:', meta.keys())
+        sys.stdout.flush()
+        vectors = meta['vector_set']['vectors']
+
+        video_array = []
+
+        for entity in vectors:
+            query_src_hash = entity['hash']
+            query_src_enc = numpy.array(entity['vector'])
+
+            for key in face_pickle:
+                s_entity = face_pickle[key]
+                s_vec = np.array(s_entity['face_vec'])
+                #s_pic = s_entity['face_pic']
+                s_videos = s_entity['videos']
+
+                left = query_src_enc
+                right = s_vec
+
+                vector_distance = face.face_distance([left], right)[0]
+                if vector_distance < distance:
+                    entry = {}
+                    entry['distance'] = vector_distance
+                    entry['src'] = query_src_hash
+                    entry['uri'] = write_file(s_entity)
+                    entry['hash'] = entry['uri'].split('/')[-1].split('.')[0]
+                    entry['videos'] = self.proc_videos(s_videos)
+                    video_array.append(entry)
+
+            video_array.sort(key=lambda temp_d: temp_d['distance'])
+            return video_array
+
+    def proc_videos(self, videos):
+        video_list = []
+        # print('videos:',videos)
+        sys.stdout.flush()
+        for source in videos:
+            vid_d = {}
+            vid_d['hash'] = source
+            frames = []
+
+            # print('videos[src]:',videos[source])
+            for frame, face_box in videos[source]:
+                frame_d = {}
+                frame_d['id'] = frame
+                frame_d['face_coordinates'] = list(face_box)
+                frames.append(frame_d)
+            vid_d['frames'] = frames
+            video_list.append(vid_d)
+
+        return video_list
+
+
+class d_make_vector(Resource):
 
     def post(self):
         ret_val = list()
@@ -266,7 +388,7 @@ class make_vector(Resource):
         return ret_val
 
 
-class find_by_group(Resource):
+class d_find_by_group(Resource):
 
     def get(self, group_name, distance):
         ret_val = list()
@@ -310,7 +432,7 @@ class find_by_group(Resource):
         return ret_val
 
 
-class find_by_vector(Resource):
+class d_find_by_vector(Resource):
 
     def get(self, search_vector_name, distance):
 
@@ -352,30 +474,24 @@ class find_by_vector(Resource):
 
 
 # TODO get rid of this one.
-api.add_resource(
-    find_by_vector,
-    app.config['V1.0'] +
-    '/find/<string:search_vector_name>/<float:distance>')
+#api.add_resource( find_by_vector, app.config['V1.0'] + '/find/<string:search_vector_name>/<float:distance>')
 
-api.add_resource(working, app.config['V1.0'] + '/working')
 
 # TODO use thisone soon
 # api.add_resource(find_by_vector, app.config[
 #                 'V1.0'] + '/findvector/<string:search_vector_name>/<float:distance>')
 
-api.add_resource(
-    compare_2_uploads,
-    app.config['V1.0'] +
-    '/compare2uploads/<string:search_vector_name1>/<string:search_vector_name2>')
-api.add_resource(make_vector, app.config['V1.0'] + '/makevector')
-api.add_resource(make_group, app.config[
-                 'V1.0'] + '/makegroup/<string:group_name>')
-api.add_resource(find_by_group, app.config[
-                 'V1.0'] + '/findgroup/<string:group_name>/<float:distance>')
+#api.add_resource( compare_2_uploads, app.config['V1.0'] + '/compare2uploads/<string:search_vector_name1>/<string:search_vector_name2>')
+#api.add_resource(make_vector, app.config['V1.0'] + '/makevector')
+#api.add_resource(make_group, app.config[ 'V1.0'] + '/makegroup/<string:group_name>')
+#api.add_resource(find_by_group, app.config[ 'V1.0'] + '/findgroup/<string:group_name>/<float:distance>')
+
 api.add_resource(return_frame, app.config['V1.0'] +
                  '/return_frame/<string:file_hash>/<int:frame_number>')
-api.add_resource(return_feeds, app.config['V1.0'] + '/feeds')
 
+api.add_resource(return_feeds, app.config['V1.0'] + '/feeds')
+api.add_resource(working, app.config['V1.0'] + '/working')
+api.add_resource(make_result_matches, app.config['V1.0'] + '/results/matches')
 if __name__ == '__main__':
     # load the pickl file
     face_search_vectors = dict()
