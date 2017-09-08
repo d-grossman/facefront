@@ -217,7 +217,35 @@ class d_make_group(Resource):
         return ret_val
 
 
-class make_result_matches(Resource):
+class make_results_comparisons(Resource):
+    def post(self):
+        ret_val = {}
+
+        loc_enc_h = handle_post_file()
+        if len(loc_enc_h) != 2:
+            abort(404, message='expected exactly 2 faces, found {0}'.format(
+                len(loc_enc_h)))
+
+        ret_val['meta'] = {}
+        ret_val['meta']['vector_set'] = {}
+        ret_val['meta']['vector_set']['count'] = len(loc_enc_h)
+        ret_val['meta']['vector_set']['vectors'] = []
+        for loc, enc, h in loc_enc_h:
+            d = {}
+            d['hash'] = h
+            d['face_coordinates'] = list(loc)
+            d['vector'] = list(enc)
+            ret_val['meta']['vector_set']['vectors'].append(d)
+
+        left = np.array(loc_enc_h[0][1])
+        right = np.array(loc_enc_h[1][1])
+        ret_val['results'] = {}
+        ret_val['results']['distance'] = face.face_distance([left], right)[0]
+
+        return ret_val
+
+
+class make_results_matches(Resource):
     def post(self):
         ret_val = {}
         query = {}
@@ -225,7 +253,7 @@ class make_result_matches(Resource):
 
         dist_name = 'threshold'
 
-        args = parser.parse_args()
+        #args = parser.parse_args()
         #print('args:', args)
         #print('request:', request)
         #print('request.data:', request.data)
@@ -423,7 +451,7 @@ class d_find_by_group(Resource):
             for group_key in group_data:
                 entity = face_pickle[key]
                 entity_vec = entity['face_vec']
-                entity_pic = entity['face_pic']
+                #entity_pic = entity['face_pic']
                 entity_videos = entity['videos']
 
                 left = np.array(group_data[group_key])
@@ -501,7 +529,9 @@ api.add_resource(return_frame, app.config['V1.0'] +
                  '/return_frame/<string:file_hash>/<int:frame_number>')
 api.add_resource(return_feeds, app.config['V1.0'] + '/feeds')
 api.add_resource(working, app.config['V1.0'] + '/working')
-api.add_resource(make_result_matches, app.config['V1.0'] + '/results/matches')
+api.add_resource(make_results_matches, app.config['V1.0'] + '/results/matches')
+api.add_resource(make_results_comparisons,
+                 app.config['V1.0'] + '/results/comparisons')
 
 if __name__ == '__main__':
     # load the pickl file
