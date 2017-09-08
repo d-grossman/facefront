@@ -191,7 +191,7 @@ class d_make_group(Resource):
 
     def post(self, group_name):
         ret_val = list()
-        args = parser.parse_args()
+        #args = parser.parse_args()
         #print('args:', args)
         #print('request:', request)
         sys.stdout.flush()
@@ -492,7 +492,7 @@ class d_find_by_vector(Resource):
         for key in face_pickle:
             entity = face_pickle[key]
             entity_vec = entity['face_vec']
-            entity_pic = entity['face_pic']
+            #entity_pic = entity['face_pic']
             entity_videos = entity['videos']
             left = np.array(face_search_vectors[search_vector_name])
             right = np.array(entity_vec)
