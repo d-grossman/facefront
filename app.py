@@ -5,6 +5,7 @@ import sys
 from collections import defaultdict
 
 import numpy as np
+
 from flask import Flask, request
 
 import cv2
@@ -270,10 +271,11 @@ class make_result_matches(Resource):
         frame_count = 0
         result_count = 0
         for result in results:
-            print('result:', result)
-            print('results[\'video\']', result['videos'])
+            #print('result:', result)
+            #print('results[\'video\']', result['videos'])
             sys.stdout.flush()
             result_count += 1
+            print('result_count:',result_count)
             for video in result['videos']:
                 frame_count += len(video['frames'])
         result_set['matches'] = frame_count
@@ -315,7 +317,7 @@ class make_result_matches(Resource):
 
         for entity in vectors:
             query_src_hash = entity['hash']
-            query_src_enc = numpy.array(entity['vector'])
+            query_src_enc = np.array(entity['vector'])
 
             for key in face_pickle:
                 s_entity = face_pickle[key]
