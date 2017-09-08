@@ -222,10 +222,6 @@ class make_result_matches(Resource):
         ret_val = {}
         query = {}
         meta = {}
-        feeds = None
-        result_set = {}
-        vector_set = {}
-        results = []
 
         dist_name = 'threshold'
 
@@ -264,7 +260,8 @@ class make_result_matches(Resource):
 
         return ret_val
 
-    def make_result_set(self, results):
+    @classmethod
+    def make_result_set(cls, results):
         result_set = {}
 
         # print('*********************')
@@ -286,7 +283,8 @@ class make_result_matches(Resource):
 
         return result_set
 
-    def make_feeds(self):
+    @classmethod
+    def make_feeds(cls):
         feeds = {}
         for h in hash2file:
             val = {}
@@ -294,7 +292,8 @@ class make_result_matches(Resource):
             feeds[hash2file[h]['Hash']] = val
         return feeds
 
-    def make_vector_set(self, loc_enc_h):
+    @classmethod
+    def make_vector_set(cls, loc_enc_h):
         vector_set = {}
         vectors = []
 
@@ -309,11 +308,12 @@ class make_result_matches(Resource):
         vector_set['vectors'] = vectors
         return vector_set
 
-    def make_result_array(self, meta):
+    @classmethod
+    def make_result_array(cls, meta):
 
         distance = meta['query']['threshold']
         #print('meta.keys:', meta.keys())
-        #sys.stdout.flush()
+        # sys.stdout.flush()
         vectors = meta['vector_set']['vectors']
 
         video_array = []
@@ -338,7 +338,7 @@ class make_result_matches(Resource):
                     entry['src'] = query_src_hash
                     entry['uri'] = write_file(s_entity)
                     entry['hash'] = entry['uri'].split('/')[-1].split('.')[0]
-                    entry['videos'] = self.proc_videos(s_videos)
+                    entry['videos'] = cls.proc_videos(s_videos)
                     video_array.append(entry)
 
             video_array.sort(key=lambda temp_d: temp_d['distance'])
@@ -349,7 +349,8 @@ class make_result_matches(Resource):
 
             return video_array
 
-    def proc_videos(self, videos):
+    @classmethod
+    def proc_videos(cls, videos):
         video_list = []
         # print('videos:',videos)
         sys.stdout.flush()
@@ -498,10 +499,10 @@ class d_find_by_vector(Resource):
 
 api.add_resource(return_frame, app.config['V1.0'] +
                  '/return_frame/<string:file_hash>/<int:frame_number>')
-
 api.add_resource(return_feeds, app.config['V1.0'] + '/feeds')
 api.add_resource(working, app.config['V1.0'] + '/working')
 api.add_resource(make_result_matches, app.config['V1.0'] + '/results/matches')
+
 if __name__ == '__main__':
     # load the pickl file
     face_search_vectors = dict()
