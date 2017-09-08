@@ -171,7 +171,8 @@ class return_feeds(Resource):
             val = dict()
             val['name'] = hash2file[h]['Name']
             val['hash'] = hash2file[h]['Hash']
-            val['uri'] = hash2file[h]['Location'] 
+            val['location'] = hash2file[h]['Location'] 
+            val['uri'] = '/static/'+ val['name']
             results.append(val)
         ret_val['results'] = results
         return ret_val

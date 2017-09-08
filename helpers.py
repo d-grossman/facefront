@@ -62,6 +62,10 @@ def hash_files(location):
     for f in files:
         name = f.split('/')[-1]
         ext = f.split('.')[-1]
+        link_src = f
+        link_dest = os.path.join('/app/static',name)
+        os.symlink(link_src,link_dest)
+        sys.stdout.flush()
         if ext in ['avi', 'mov', 'mp4']:
             file_hash = file_digest(f)
             ret_val[file_hash]['Location'] = f
