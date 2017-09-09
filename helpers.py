@@ -20,9 +20,16 @@ def vec2hash(v):
     return hashlib.md5(v.encode("utf")).hexdigest()
 
 
+def pic2hash(v):
+    v_str = '{0}'.format(v)
+    v_str = v_str.encode("utf")
+    return hashlib.md5(v_str).hexdigest()
+
+
 def write_file(entity, prefix='static/'):
+    base_name = pic2hash(entity['face_pic'])
     img = Image.fromarray(np.roll(entity['face_pic'], 1, axis=-1))
-    base_name = vec2hash(entity['face_vec'])
+    #base_name = vec2hash(entity['face_vec'])
     filename = '{0}.{1}'.format(base_name, 'jpg')
     uri = os.path.join(prefix, filename)
     if not os.path.isfile(uri):

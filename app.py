@@ -2,15 +2,17 @@ import hashlib
 import os
 import pickle
 import sys
+import time
 from collections import defaultdict
 
+import cv2
 import numpy as np
 from flask import Flask, request
-
-import cv2
-from face import face
 from flask_restful import Api, Resource, abort, reqparse
-from helpers import (file_digest, hash_files, vec2hash, vec2str, write_file,
+from werkzeug.utils import secure_filename
+
+from face import face
+from helpers import (file_digest, hash_files, pic2hash, vec2str, write_file,
                      write_frame)
 from normalizeface import (align_face_to_template, get_face_landmarks,
                            normalize_faces)
@@ -97,8 +99,10 @@ def handle_post_file():
         # keep the same extension on the file
         extension = file.filename.split('.')[-1]
 
-        #@TODO add the time of the reference to keep things seperated
-        filename_h = hashlib.md5(file.filename.encode("utf")).hexdigest()
+        #@TODO figure out how make file contents the hash
+        file_time_name = file.filename + '{0}'.format(time.time() * 1000)
+        file_time_name = file_time_name.encode("utf")
+        filename_h = hashlib.md5(file_time_name).hexdigest()
 
         file.filename = '{0}.{1}'.format(filename_h, extension)
         print('filename:', file.filename)
@@ -114,6 +118,9 @@ def handle_post_file():
         list_face_locs = face.face_locations(face_image, 2)
         enc = None
 
+        (top, right, bottom, left) = list_face_locs[0]
+        face_array = face_image[top:bottom, left:right]
+
         if app.config['normalize']:
             # normalize
             list_face_encodings = normalize_faces(
@@ -124,11 +131,13 @@ def handle_post_file():
             enc = face.face_encodings(face_image, list_face_locs)[0]
 
         loc = list_face_locs[0]
+
         print('enc_len:', len(enc))
         sys.stdout.flush()
 
         # make a reference to the vector as a loose hash to the file
-        h = vec2hash(enc)
+        #h = vec2hash(enc)
+        h = pic2hash(face_array)
         temp = (loc, enc, h)
         retval.append(temp)
     return retval
