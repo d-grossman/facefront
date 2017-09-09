@@ -193,7 +193,7 @@ class make_results_comparisons(Resource):
 
 
 class make_results_matches(Resource):
-    
+
     def post(self):
         ret_val = {}
         query = {}
