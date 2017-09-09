@@ -68,10 +68,10 @@ class return_frame(Resource):
         if keep_going:
 
             meta = dict()
-            meta['File_hash'] = file_hash
-            meta['Frame_number'] = frame_number
-            ret_val['Meta'] = meta
-            ret_val['Frame'] = write_frame(file_hash, frame_number, img)
+            meta['file_hash'] = file_hash
+            meta['frame_number'] = frame_number
+            ret_val['meta'] = meta
+            ret_val['frame'] = write_frame(file_hash, frame_number, img)
             # video_file.close()
             return ret_val
 
@@ -346,7 +346,7 @@ class make_results_matches(Resource):
 
 
 api.add_resource(return_frame, app.config['V1.0'] +
-                 '/return_frame/<string:file_hash>/<int:frame_number>')
+                 '/frames/<string:file_hash>/<int:frame_number>')
 api.add_resource(return_feeds, app.config['V1.0'] + '/feeds')
 api.add_resource(working, app.config['V1.0'] + '/working')
 api.add_resource(make_results_matches, app.config['V1.0'] + '/results/matches')
