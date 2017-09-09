@@ -2,10 +2,10 @@ import glob
 import hashlib
 import os
 import sys
+from collections import defaultdict
 
 import numpy as np
 from PIL import Image
-from collections import defaultdict
 
 
 def vec2str(v):
