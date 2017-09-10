@@ -15,6 +15,7 @@ def vec2str(v):
     return ret_val
 
 
+# jitters messes with this..
 def vec2hash(v):
     v = vec2str(v)
     return hashlib.md5(v.encode("utf")).hexdigest()
@@ -29,7 +30,6 @@ def pic2hash(v):
 def write_file(entity, prefix='static/'):
     base_name = pic2hash(entity['face_pic'])
     img = Image.fromarray(np.roll(entity['face_pic'], 1, axis=-1))
-    #base_name = vec2hash(entity['face_vec'])
     filename = '{0}.{1}'.format(base_name, 'jpg')
     uri = os.path.join(prefix, filename)
     if not os.path.isfile(uri):
@@ -77,6 +77,7 @@ def hash_files(location):
             file_hash = file_digest(f)
             ret_val[file_hash]['Location'] = f
             ret_val[file_hash]['Hash'] = file_hash
+            ret_val[file_hash]['file_content_hash'] = file_hash
             ret_val[file_hash]['Name'] = name
             print('found: {0}:{1}'.format(file_hash, f.split('/')[-1]))
             sys.stdout.flush()

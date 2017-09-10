@@ -159,6 +159,7 @@ class return_feeds(Resource):
             val = dict()
             val['name'] = hash2file[h]['Name']
             val['hash'] = hash2file[h]['Hash']
+            val['file_content_hash'] = hash2file[h]['Hash']
             val['location'] = hash2file[h]['Location']
             val['uri'] = '/static/' + val['name']
             results.append(val)
@@ -189,6 +190,7 @@ class make_results_comparisons(Resource):
         for loc, enc, h in loc_enc_h:
             d = {}
             d['hash'] = h
+            d['face_pic_hash'] = h
             d['face_coordinates'] = list(loc)
             d['vector'] = list(enc)
             ret_val['meta']['vector_set']['vectors'].append(d)
@@ -286,6 +288,7 @@ class make_results_matches(Resource):
             if enc is not None and len(enc) == 128:
                 entity = {}
                 entity['hash'] = h
+                entity['face_pic_hash'] = h
                 entity['face_coordinates'] = loc
                 entity['vector'] = list(enc)
                 vectors.append(entity)
