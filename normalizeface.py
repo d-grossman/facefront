@@ -65,7 +65,7 @@ def align_face_to_template(
         img,
         facial_landmarks,
         output_dim,
-        landmarkIndices=OUTER_EYES_AND_NOSE):
+        landmarkIndices=None):
     """
     Aligns image by warping it to fit the landmarks on
     the image (src) to the landmarks on the template (dst)
@@ -74,7 +74,9 @@ def align_face_to_template(
         facial_landmarks: list of 68 landmarks (obtained from dlib)
         output_dim: image output dimension
     """
+    landmarkIndices = landmarkIndices or OUTER_EYES_AND_NOSE
     np_landmarks = np.float32(facial_landmarks)
+
     np_landmarks_idx = np.array(landmarkIndices)
 
     H = cv2.getAffineTransform(np_landmarks[np_landmarks_idx],
