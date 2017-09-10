@@ -9,10 +9,9 @@ import cv2
 import numpy as np
 from flask import Flask, request
 from flask_restful import Api, Resource, abort, reqparse
-from werkzeug.utils import secure_filename
 
 from face import face
-from helpers import (file_digest, hash_files, pic2hash, vec2str, write_file,
+from helpers import (hash_files, pic2hash, vec2str, write_file,
                      write_frame)
 from normalizeface import (align_face_to_template, get_face_landmarks,
                            normalize_faces)
