@@ -73,6 +73,7 @@ def hash_files(location):
         link_dest = os.path.join('/app/static', name)
         os.symlink(link_src, link_dest)
         just_hash_name = link_dest.split('_')[-1]
+        just_hash_name = os.path.join('/app/static',just_hash_name)
         os.symlink(link_src, just_hash_name)
         sys.stdout.flush()
         if ext in ['avi', 'mov', 'mp4']:
