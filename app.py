@@ -27,6 +27,8 @@ face_search_vectors = None
 face_group_search = None
 hash2file = None
 
+JITTERS=0
+
 parser = reqparse.RequestParser()
 
 
@@ -123,7 +125,7 @@ def handle_post_file():
         if app.config['normalize']:
             # normalize
             list_face_encodings = normalize_faces(
-                face_image, list_face_locs, 2)
+                face_image, list_face_locs, JITTERS)
             enc = list_face_encodings[0][0]
         else:
             #not normalize
