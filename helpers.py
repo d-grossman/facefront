@@ -72,6 +72,8 @@ def hash_files(location):
         link_src = f
         link_dest = os.path.join('/app/static', name)
         os.symlink(link_src, link_dest)
+        just_hash_name = link_dest.split('_')[-1]
+        os.symlink(link_src, just_hash_name)
         sys.stdout.flush()
         if ext in ['avi', 'mov', 'mp4']:
             file_hash = file_digest(f)
