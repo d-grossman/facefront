@@ -4,8 +4,8 @@
 ```docker build -f Dockerfile.flask -t facefront.flask .```
 
 ## run the container
-```docker run -p 5000:5000 [-v /dirwithVideos:/mdata] facefront.flask``` . 
-dirwithVideos - place where you have name_hash.ext video files for serving up frames.  
+```docker run -p 5000:5000 [-v /dirwithVideos:/mdata] facefront.flask```  
+dirwithVideos - place where you have name_hash.ext video files for serving up frames.  
 
 ## Interacting with the container
 
@@ -22,7 +22,7 @@ dirwithVideos - place where you have name_hash.ext video files for serving up fr
 ```bash
 curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
 ```
-  
+
 ```javascript
 {"meta": {"file_hash": "012d28de1d13820b471cf00e9e3ecf4e", 
           "frame_number": 128}, 
@@ -36,11 +36,11 @@ curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
   Get a listing of the feeds that are available, must have mapped videos into the /mdata directory.
   
 ```bash
-  curl localhost:5000/api/1.0/feeds
+curl localhost:5000/api/1.0/feeds
 ```
   
 ```javascript
-  {'meta': {'result_set': {'count': 3}},
+{'meta': {'result_set': {'count': 3}},
  'results': [{'file_content_hash': '012d28de1d13820b471cf00e9e3ecf4e',
               'hash': '012d28de1d13820b471cf00e9e3ecf4e',
               'location': '/mdata/3_012d28de1d13820b471cf00e9e3ecf4e.mp4',
