@@ -15,6 +15,7 @@ dirwithVideos - place where you have name_hash.ext video files for serving up fr
 
 #### return a frame
 ```http://yourserver:5000/api/1.0/frames/<string:file_hash>/<int:frame_number>```  
+
   GET  
   Get a frame=`frame_number` from video which file contenthash = `file_hash`.  
   
@@ -22,10 +23,10 @@ dirwithVideos - place where you have name_hash.ext video files for serving up fr
 curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
 ```
   
-```
+```javascript
 {"meta": {"file_hash": "012d28de1d13820b471cf00e9e3ecf4e", 
-             "frame_number": 128}, 
-    "frame": "static/764346b3676fa262acb06753c116c923.jpg"}
+          "frame_number": 128}, 
+ "frame": "static/764346b3676fa262acb06753c116c923.jpg"}
 ```
   
 #### list the feeds
@@ -37,7 +38,7 @@ curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
   curl localhost:5000/api/1.0/feeds
 ```
   
-```
+```javascript
   {'meta': {'result_set': {'count': 3}},
  'results': [{'file_content_hash': '012d28de1d13820b471cf00e9e3ecf4e',
               'hash': '012d28de1d13820b471cf00e9e3ecf4e',
@@ -69,7 +70,7 @@ curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
 curl -i -X POST -H "Content-Type: multipart/form-data" -F "threshold=0.35" -F "0=@/dir/to/file.jpg" http://localhost:5000/api/1.0/results/matches
 ```     
 
-```
+```javascript
 {'meta': {'query': {'feeds': {'012d28de1d13820b471cf00e9e3ecf4e': {'name': 'BTTF3_012d28de1d13820b471cf00e9e3ecf4e.mp4'},
                               '01f678d7122a2c64eef9c02cde82ef29': {'name': 'BTTF1_01f678d7122a2c64eef9c02cde82ef29.mp4'},
                               '67e1198a466f88d0172adc77abde5b69': {'name': 'BTTF2_67e1198a466f88d0172adc77abde5b69.mp4'}},
@@ -107,14 +108,14 @@ curl -i -X POST -H "Content-Type: multipart/form-data" -F "threshold=0.35" -F "0
 ```
 
 #### compare two faces
-    PUSH
-    upload 2 faces and get vector distance between them
+  PUSH
+  upload 2 faces and get vector distance between them
    
 ```bash
 curl -i -X POST -H "Content-Type: multipart/form-data" -F "0=@/path/to/face1.jpg"  -F "1=@/path/to/face2.jpg"  http://localhost:5000/api/1.0/results/comparisons
 ```
 
-```
+```javascript
 {'meta': {'vector_set': {'count': 2,
                          'vectors': [{'face_coordinates': [74, 168, 152, 91],
                                       'face_pic_hash': '1c42c84874523a521e3c98ced69537a0',
