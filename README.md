@@ -16,8 +16,8 @@ dirwithVideos - place where you have name_hash.ext video files for serving up fr
 #### return a frame
 ```http://yourserver:5000/api/1.0/frames/<string:file_hash>/<int:frame_number>```  
 
-  GET    
-  Get a frame=`frame_number` from video which file contenthash = `file_hash`.  
+  GET  
+  Get a frame=`frame_number` from video which file contenthash = `file_hash`.  
   
 ```bash
 curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
@@ -31,7 +31,8 @@ curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
   
 #### list the feeds
 ```http://yourserver:5000/api/1.0/feeds```  
-  GET  
+
+  GET  
   Get a listing of the feeds that are available, must have mapped videos into the /mdata directory.
   
 ```bash
@@ -59,10 +60,21 @@ curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
 ```
 #### is it working
 ```http://yourserver:5000/api/1.0/working```  
+
   GET  
   will probbaly converted to a health heartbeat when scheduling via marathon  
+```bash
+curl localhost:5000/api/1.0/working
+```
+
+```javascript
+{"working": "yes"}
+```
+  
   
 #### make an image query
+```http://yourserver:5000/api/1.0/results/matches```
+
   POST  
   Upload a picture of a face to find which media has that face.
   
