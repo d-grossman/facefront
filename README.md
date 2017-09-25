@@ -16,7 +16,7 @@ dirwithVideos - place where you have name_hash.ext video files for serving up fr
 #### return a frame
 ```http://yourserver:5000/api/1.0/frames/<string:file_hash>/<int:frame_number>```  
 
-  GET  
+  GET    
   Get a frame=`frame_number` from video which file contenthash = `file_hash`.  
   
 ```bash
@@ -31,7 +31,7 @@ curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
   
 #### list the feeds
 ```http://yourserver:5000/api/1.0/feeds```  
-  GET
+  GET  
   Get a listing of the feeds that are available, must have mapped videos into the /mdata directory.
   
 ```bash
@@ -63,7 +63,7 @@ curl localhost:5000/api/1.0/frames/012d28de1d13820b471cf00e9e3ecf4e/128
   will probbaly converted to a health heartbeat when scheduling via marathon  
   
 #### make an image query
-  POST
+  POST  
   Upload a picture of a face to find which media has that face.
   
 ```bash
@@ -108,7 +108,7 @@ curl -i -X POST -H "Content-Type: multipart/form-data" -F "threshold=0.35" -F "0
 ```
 
 #### compare two faces
-  PUSH
+  POST
   upload 2 faces and get vector distance between them
    
 ```bash
